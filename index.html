@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Genesis Terminal</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Contact Banner -->
+  <div class="contact-banner">
+    <div class="contact-banner-content">
+      <div class="banner-pill">
+        <span class="banner-icon">🔥</span>
+        <span class="banner-text">We can rent here for you</span>
+      </div>
+      <a href="https://twitter.com/0xAybars" target="_blank" class="banner-link">
+        <span class="banner-link-icon">𝕏</span>
+        <span>@0xAybars</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <h3>Virtual Genesis Terminal</h3>
+      </div>
+      
+      <!-- Ad Area -->
+      <div class="ad-container">
+        <div class="ad-content">
+          <div class="ad-label">AD SPACE AVAILABLE</div>
+          <div class="ad-message">Contact for rates and placement options</div>
+        </div>
+      </div>
+      
+      <div class="search-container">
+        <div class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, symbol, or address...">
+      </div>
+    </header>
+
+    <div id="loadingContainer" class="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <h3>No tokens found</h3>
+      <p>Try adjusting your search criteria</p>
+    </div>
+
+    <div id="tableContainer" class="table-container">
+      <table id="tokensTable" class="tokens-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="name">TOKEN</th>
+            <th class="sortable" data-sort="price">PRICE</th>
+            <th class="sortable" data-sort="age">AGE</th>
+            <th class="sortable" data-sort="volume">VOLUME</th>
+            <th class="sortable" data-sort="priceChange5m">5M</th>
+            <th class="sortable" data-sort="priceChange1h">1H</th>
+            <th class="sortable" data-sort="priceChange6h">6H</th>
+            <th class="sortable" data-sort="priceChange24h">24H</th>
+            <th class="sortable" data-sort="liquidity">LIQUIDITY</th>
+            <th class="sortable" data-sort="marketCap">MCAP</th>
+            <th class="sortable" data-sort="fdv">FDV</th>
+          </tr>
+        </thead>
+        <tbody id="tokensTableBody">
+          <!-- Token rows will be added here dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="pagination" class="pagination">
+      <div class="pagination-controls">
+        <button id="prevPage" class="pagination-button" disabled>&lt; Previous</button>
+        <button id="nextPage" class="pagination-button">Next &gt;</button>
+      </div>
+      <div id="paginationInfo" class="pagination-info">Page 1 of 1</div>
+      <div class="page-size-container">
+        <label for="pageSizeSelect">Show:</label>
+        <select id="pageSizeSelect" class="page-size-select">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-text">Created by <a href="https://twitter.com/0xAybars" target="_blank">@0xAybars</a> • 
+        <span class="donation-text">
+          Buy me a coffee: 
+          <span class="donation-address">0x4a150df7d7B30B65Fe8321Ef0F907E6479dA49F9</span>
+          <button id="copyDonationAddress" class="copy-donation-address">Copy</button>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Token Modal -->
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Token Details</h2>
+        <button id="closeModal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="token-detail-header">
+          <img id="detailLogo" src="https://via.placeholder.com/64" alt="Token Logo" class="token-detail-logo">
+          <div class="token-detail-info">
+            <div class="token-names">
+              <h3 id="detailName" class="token-detail-name">Token Name</h3>
+              <span id="detailSymbol" class="token-detail-symbol">SYMBOL</span>
+              <span id="detailUnlockBadge" class="detail-unlock-badge" style="display: none;">Unlocks in 0 days</span>
+            </div>
+            <div class="address-container">
+              <span id="detailAddress" class="token-address">0x0000000000000000000000000000000000000000</span>
+              <button id="copyAddress" class="copy-address">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H14C15.1046 7 16 6.10457 16 5M8 5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5M16 5V7M16 14H20M20 14L17 11M20 14L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Copy Address
+              </button>
+            </div>
+            <div class="token-detail-price">
+              <span id="detailPrice" class="price-value">$0.00</span>
+              <span id="detailChange" class="token-change">0.00%</span>
+              <div id="tradeButtonContainer"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" data-tab="overview">Overview</div>
+          <div class="tab" data-tab="charts">Charts</div>
+          <div class="tab" data-tab="transactions">Transactions</div>
+        </div>
+
+        <div id="overviewTab" class="tab-content active">
+          <div id="tokenDetailStats" class="token-detail-embed">
+            <!-- GeckoTerminal chart will be embedded here -->
+          </div>
+
+          <div id="tokenDescription" class="token-description">
+            No description available.
+          </div>
+          
+          <div class="token-listing-info">
+            <div class="listing-date">
+              <span class="listing-label">Listed On:</span>
+              <span id="listedOn" class="listing-value">N/A</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="chartsTab" class="tab-content">
+          <div id="chartTabEmbed" class="chart-tab-embed">
+            <!-- GeckoTerminal chart will be embedded here from the charts tab -->
+          </div>
+        </div>
+
+        <div id="transactionsTab" class="tab-content">
+          <p>Transaction data will be displayed here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal for Virtual Data -->
+  <div id="infoModal" class="info-modal">
+    <div class="info-modal-content">
+      <div class="info-modal-header">
+        <h2>Virtual Details</h2>
+        <button id="closeInfoModal" class="info-modal-close">&times;</button>
+      </div>
+      <div class="info-modal-body">
+        <div id="infoModalContent">
+          <!-- Content will be populated dynamically -->
+          <p>Loading virtual details...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html> 
