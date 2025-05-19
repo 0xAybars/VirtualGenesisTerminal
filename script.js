@@ -57,7 +57,7 @@ style.textContent = `
     border-spacing: 0;
     width: 100%;
     border-radius: 8px;
-    overflow: hidden;
+    overflow-y: auto;
   }
   
   #tokensTable thead th {
@@ -66,8 +66,8 @@ style.textContent = `
     text-transform: uppercase;
     letter-spacing: 0.03em;
     padding: 0.75rem;
-    background: rgba(30, 30, 34, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    z-index: 500;
   }
   
   #tokensTable th.sortable {
