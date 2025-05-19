@@ -1877,6 +1877,55 @@ function renderModernVirtualInfo(virtualData, contentElement) {
   `;
 }
 
+// Function to randomly update token data
+function updateTokenDataRandomly() {
+  filteredTokens.forEach(token => {
+    // Random price change between -5% and +5%
+    const priceChange = (Math.random() * 10 - 5) / 100;
+    const oldPrice = token.price;
+    token.price = oldPrice * (1 + priceChange);
+    
+    // Update price change history
+    token.priceChangeHistory.m5 = (Math.random() * 10 - 5);
+    token.priceChangeHistory.h1 = (Math.random() * 10 - 5);
+    token.priceChangeHistory.h6 = (Math.random() * 10 - 5);
+    token.priceChangeHistory.h24 = (Math.random() * 10 - 5);
+    
+    // Update volume (random change between -10% and +10%)
+    const volumeChange = (Math.random() * 20 - 10) / 100;
+    token.volume = token.volume * (1 + volumeChange);
+    
+    // Update liquidity (random change between -2% and +2%)
+    const liquidityChange = (Math.random() * 4 - 2) / 100;
+    token.liquidity = token.liquidity * (1 + liquidityChange);
+    
+    // Update market cap based on new price
+    token.marketCap = token.price * (token.marketCap / oldPrice);
+    
+    // Update FDV based on new price
+    token.fdv = token.price * (token.fdv / oldPrice);
+  });
+  
+  // Re-render the table with updated data
+  renderTokens();
+}
+
+// Function to start random updates
+function startRandomUpdates() {
+  // Initial update
+  updateTokenDataRandomly();
+  
+  // Set up interval for random updates
+  setInterval(() => {
+    // Random interval between 30 and 60 seconds
+    const nextUpdate = Math.floor(Math.random() * (60000 - 30000) + 30000);
+    
+    setTimeout(() => {
+      updateTokenDataRandomly();
+    }, nextUpdate);
+  }, 30000); // Check every 30 seconds for next update
+}
+
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   // Debug DOM elements
@@ -1888,7 +1937,10 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Info buttons found initially:', infoButtons.length);
 
   // Init the application
-  init();
+  init().then(() => {
+    // Start random updates after initial data load
+    startRandomUpdates();
+  });
 
   // Create a global test function to manually open the modal
   window.testInfoModal = function (virtualId = 24552) {
