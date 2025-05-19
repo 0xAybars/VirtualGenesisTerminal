@@ -492,6 +492,8 @@ let currentPage = 1;
 let itemsPerPage = parseInt(pageSizeSelect.value);
 let currentSort = { column: 'marketCap', direction: 'desc' };
 let currentTokenData = null;
+let isUnlockFilterActive = false;
+let isLowFdvFilterActive = true; // Default to true - will exclude low FDV tokens
 
 // Initialize the application
 async function init() {
@@ -515,13 +517,28 @@ async function init() {
     );
     closeButtons.forEach((button) => button.classList.add('modal-close'));
 
+    // Setup unlock filter
+    const unlockFilter = document.getElementById('unlockFilter');
+    if (unlockFilter) {
+      unlockFilter.addEventListener('click', toggleUnlockFilter);
+    }
+
+    // Setup low FDV filter
+    const lowFdvFilter = document.getElementById('lowFdvFilter');
+    if (lowFdvFilter) {
+      lowFdvFilter.addEventListener('click', toggleLowFdvFilter);
+      // Set initial active state since we're excluding low FDV by default
+      lowFdvFilter.classList.add('active');
+    }
+
     // Verify info modal exists
     console.log('Checking info modal elements during init:');
-
     console.log('- closeInfoModal:', document.getElementById('closeInfoModal'));
 
     // Fetch data from the provided endpoint
     await fetchVirtualsData();
+
+    filterTokens();
 
     // Setup event listeners
     setupEventListeners();
@@ -529,12 +546,92 @@ async function init() {
     // Sort tokens
     sortTokens();
 
+    // Update unlock filter badge
+    updateUnlockFilterBadge();
+
     // Render the initial view
     renderTokens();
   } catch (error) {
     console.error('Failed to initialize the application:', error);
     displayError(error.message || 'Something went wrong');
   }
+}
+
+// Toggle unlock filter
+function toggleUnlockFilter() {
+  const filterButton = document.getElementById('unlockFilter');
+  isUnlockFilterActive = !isUnlockFilterActive;
+  
+  if (filterButton) {
+    filterButton.classList.toggle('active', isUnlockFilterActive);
+  }
+  
+  filterTokens();
+  renderTokens();
+}
+
+// Update the unlock filter badge count
+function updateUnlockFilterBadge() {
+  const filterBadge = document.querySelector('.filter-badge');
+  if (filterBadge) {
+    const unlockedCount = allTokens.filter(token => 
+      token.tokenomicsStatus && 
+      token.tokenomicsStatus.hasUnlocked === false && 
+      token.tokenomicsStatus.daysFromFirstUnlock > 0
+    ).length;
+    
+    filterBadge.textContent = unlockedCount;
+  }
+}
+
+// Toggle low FDV filter
+function toggleLowFdvFilter() {
+  const filterButton = document.getElementById('lowFdvFilter');
+  isLowFdvFilterActive = !isLowFdvFilterActive;
+  
+  if (filterButton) {
+    filterButton.classList.toggle('active', isLowFdvFilterActive);
+  }
+  
+  filterTokens();
+  renderTokens();
+}
+
+// Filter tokens based on current filters
+function filterTokens() {
+  const searchTerm = searchInput.value.toLowerCase().trim();
+  
+  filteredTokens = allTokens.filter(token => {
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      token.name.toLowerCase().includes(searchTerm) ||
+      token.symbol.toLowerCase().includes(searchTerm) ||
+      token.address.toLowerCase().includes(searchTerm);
+    
+    // Unlock filter
+    const matchesUnlock = !isUnlockFilterActive || (
+      token.tokenomicsStatus && 
+      token.tokenomicsStatus.hasUnlocked === false && 
+      token.tokenomicsStatus.daysFromFirstUnlock > 0
+    );
+
+    // Low FDV filter - when isLowFdvFilterActive is true, we exclude low FDV tokens
+    const matchesFdv = !isLowFdvFilterActive || token.fdv >= 300000;
+    
+    return matchesSearch && matchesUnlock && matchesFdv;
+  });
+  
+  // Reset to first page when filtering
+  currentPage = 1;
+  
+  // Sort tokens after filtering
+  sortTokens();
+}
+
+// Handle search input
+function handleSearch() {
+  filterTokens();
+  renderTokens();
 }
 
 // Fetch Virtuals Protocol data
@@ -849,29 +946,6 @@ function setupEventListeners() {
   copyAddressButton.classList.add('modern-button');
 }
 
-// Handle search input
-function handleSearch() {
-  const searchTerm = searchInput.value.toLowerCase().trim();
-
-  if (searchTerm === '') {
-    filteredTokens = [...allTokens];
-  } else {
-    filteredTokens = allTokens.filter(
-      (token) =>
-        token.name.toLowerCase().includes(searchTerm) ||
-        token.symbol.toLowerCase().includes(searchTerm) ||
-        token.address.toLowerCase().includes(searchTerm)
-    );
-  }
-
-  // Reset to first page when searching
-  currentPage = 1;
-
-  // Sort and render tokens
-  sortTokens();
-  renderTokens();
-}
-
 // Sort tokens based on current sort settings
 function sortTokens() {
   filteredTokens.sort((a, b) => {
@@ -981,25 +1055,13 @@ function createTokenRow(token) {
   // Add unlock badge if token hasn't unlocked yet
   let unlockBadge = '';
   console.log(`Processing token ${token.symbol}:`, token);
-  console.log(
-    `Token ${token.symbol} tokenomicsStatus:`,
-    token.tokenomicsStatus
-  );
+  console.log(`Token ${token.symbol} tokenomicsStatus:`, token.tokenomicsStatus);
 
   if (token.tokenomicsStatus) {
-    console.log(
-      `Token ${token.symbol} hasUnlocked:`,
-      token.tokenomicsStatus.hasUnlocked
-    );
-    console.log(
-      `Token ${token.symbol} daysFromFirstUnlock:`,
-      token.tokenomicsStatus.daysFromFirstUnlock
-    );
+    console.log(`Token ${token.symbol} hasUnlocked:`, token.tokenomicsStatus.hasUnlocked);
+    console.log(`Token ${token.symbol} daysFromFirstUnlock:`, token.tokenomicsStatus.daysFromFirstUnlock);
 
-    if (
-      token.tokenomicsStatus.hasUnlocked === false &&
-      token.tokenomicsStatus.daysFromFirstUnlock > 0
-    ) {
+    if (token.tokenomicsStatus.hasUnlocked === false && token.tokenomicsStatus.daysFromFirstUnlock > 0) {
       console.log(`Adding lock badge for ${token.symbol}`);
       unlockBadge = `<div class="unlock-badge">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1014,13 +1076,24 @@ function createTokenRow(token) {
     console.log(`No tokenomicsStatus for ${token.symbol}`);
   }
 
+  // Add danger badge if FDV is less than 300K
+  let dangerBadge = '';
+  if (token.fdv < 300000) {
+    dangerBadge = `<div class="danger-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Low FDV
+    </div>`;
+  }
+
   console.log(`Processing token ${token}:`, token);
   nameCell.innerHTML = `
     <div class="token-name-cell">
       <img src="${token.image}" alt="${token.symbol}" class="token-logo">
       <div class="token-name-container">
         <div class="token-name-wrapper">
-          <a href="https://app.virtuals.io/virtuals/${token.id}" class="token-name" target="_blank">${token.name}</a>
+          <a href="https://app.virtuals.io/virtuals/${token.virtual.id}" class="token-name" target="_blank">${token.name}</a>
           <a href="https://app.uniswap.org/swap?outputCurrency=${token.address}&inputCurrency=0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b&chain=base" class="trade-button" target="_blank">
             <img src="https://app.uniswap.org/favicon.png" width="12" height="12" alt="Trade on Uniswap" />
           </a>
@@ -1031,7 +1104,10 @@ function createTokenRow(token) {
           </button>
           ${unlockBadge}
         </div>
-        <div class="token-symbol">$${token.symbol}</div>
+        <div class="token-symbol-container">
+          <span class="token-symbol">$${token.symbol}</span>
+          ${dangerBadge}
+        </div>
       </div>
     </div>
   `;
@@ -1138,7 +1214,7 @@ function showTokenDetails(token) {
   // Update UI elements with token data
   const logoElement = document.getElementById('detailLogo');
   if (logoElement)
-    logoElement.src = token.image || 'https://via.placeholder.com/64';
+    logoElement.src = token.image;
 
   const nameElement = document.getElementById('detailName');
   nameElement.innerHTML = `<a href="https://app.virtuals.io/virtuals/${

@@ -58,8 +58,10 @@
   <div class="container">
     <header>
       <div class="logo">
-        <div class="logo-icon">⚡</div>
-        <h3>VirGenTerm</h3>
+        <div class="logo-container">
+          <div class="logo-icon"><img src="vgt.png" alt="VirGenTerm Logo" style="width: 64px; height: 64px;"></div>
+          <div class="logo-text">VirGenTerm</div>
+        </div>
       </div>
       
       <!-- Ad Area -->
@@ -69,16 +71,35 @@
           <div class="ad-message">Contact for rates and placement options</div>
         </div>
       </div>
-      
-      <div class="search-container">
-        <div class="search-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, symbol, or address...">
-      </div>
     </header>
+
+    <div class="filters-section">
+      <div class="filters-wrapper">
+        <button id="unlockFilter" class="filter-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14.5V16.5M7 10.0333V8.2C7 5.33 9.25 3 12 3C14.75 3 17 5.33 17 8.2V10.0333M3.2 10H20.8C21.9201 10 22.4802 10 22.908 10.218C23.2843 10.4097 23.5903 10.7157 23.782 11.092C24 11.5198 24 12.0799 24 13.2V16.8C24 17.9201 24 18.4802 23.782 18.908C23.5903 19.2843 23.2843 19.5903 22.908 19.782C22.4802 20 21.9201 20 20.8 20H3.2C2.0799 20 1.51984 20 1.09202 19.782C0.7157 19.5903 0.409734 19.2843 0.218024 18.908C0 18.4802 0 17.9201 0 16.8V13.2C0 12.0799 0 11.5198 0.218024 11.092C0.409734 10.7157 0.7157 10.4097 1.09202 10.218C1.51984 10 2.0799 10 3.2 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Show Upcoming Unlocks</span>
+          <div class="filter-badge">0</div>
+        </button>
+
+        <button id="lowFdvFilter" class="filter-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Exclude Low FDV</span>
+        </button>
+        
+        <div class="search-container">
+          <div class="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by name, symbol, or address...">
+        </div>
+      </div>
+    </div>
 
     <div id="loadingContainer" class="loading">
       <div class="spinner"></div>
@@ -152,7 +173,7 @@
       </div>
       <div class="modal-body">
         <div class="token-detail-header">
-          <img id="detailLogo" src="https://via.placeholder.com/64" alt="Token Logo" class="token-detail-logo">
+          <img id="detailLogo" src="vgt.png" alt="Token Logo" class="token-detail-logo">
           <div class="token-detail-info">
             <div class="token-names">
               <h3 id="detailName" class="token-detail-name">Token Name</h3>
@@ -206,7 +227,7 @@
         </div>
 
         <div id="transactionsTab" class="tab-content">
-          <p>Transaction data will be displayed here.</p>
+          <p>Transaction data will be displayed here. (soon)</p>
         </div>
       </div>
     </div>
